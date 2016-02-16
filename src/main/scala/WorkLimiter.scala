@@ -17,6 +17,8 @@ class WorkLimiter[T](duration: FiniteDuration, workAmount: Int, target: ActorRef
 
 	startWith(Idle, Work(Queue[T](), workAmount))
 
+	when(Idle)(FSM.NullFunction)
+
 	when(Active) {
 		// New period but no messages
 		case Event(Tick, d @ Work(Queue(), _)) =>
