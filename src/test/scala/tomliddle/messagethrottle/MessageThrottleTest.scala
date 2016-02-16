@@ -1,10 +1,14 @@
+package tomliddle.messagethrottle
 
-import akka.actor.{ActorSystem, ActorRef, Props}
-import org.scalatest._
+
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.testkit._
+import org.scalatest._
+import tomliddle.messagethrottle.MessageThrottle.EnQueue
+
 import scala.concurrent.duration._
 
-class WorkLimiterTest extends TestKit(ActorSystem("system"))
+class MessageThrottleTest extends TestKit(ActorSystem("system"))
 	with DefaultTimeout
 	with ImplicitSender
 	with WordSpecLike
@@ -12,7 +16,7 @@ class WorkLimiterTest extends TestKit(ActorSystem("system"))
 	with BeforeAndAfterEach
 	with BeforeAndAfterAll {
 
-	"WorkLimiter" when {
+	"MessageThrottle" when {
 
 		"running" should {
 
@@ -29,6 +33,7 @@ class WorkLimiterTest extends TestKit(ActorSystem("system"))
 			"send and receive 3 messages" in {
 				val testProbe = TestProbe()
 				val workLimiterActor = createWorkLimiterActor(testProbe.ref)
+
 
 				workLimiterActor ! EnQueue("Test1")
 				workLimiterActor ! EnQueue("Test2")
@@ -98,7 +103,7 @@ class WorkLimiterTest extends TestKit(ActorSystem("system"))
 	}
 
 	private def createWorkLimiterActor(target: ActorRef, sendLimit: Int = 3): ActorRef = {
-		TestActorRef(Props(new WorkLimiter[String](1 second, sendLimit, target)))
+		TestActorRef(Props(new MessageThrottle[String](1 second, sendLimit, target)))
 	}
 
 }
