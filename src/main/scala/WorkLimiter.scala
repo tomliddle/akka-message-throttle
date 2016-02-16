@@ -10,7 +10,7 @@ case object Active extends State
 
 case class Work[T](queue: Queue[T], workLeft: Int)
 case class EnQueue[T](msg: T)
-case object Tick
+case object TimePeriod
 
 
 class WorkLimiter[T](duration: FiniteDuration, workAmount: Int, target: ActorRef) extends FSM[State, Work[T]] {
@@ -20,12 +20,12 @@ class WorkLimiter[T](duration: FiniteDuration, workAmount: Int, target: ActorRef
 	when(Idle)(FSM.NullFunction)
 
 	when(Active) {
-		// New period but no messages
-		case Event(Tick, d @ Work(Queue(), _)) =>
+		// New time period but no messages
+		case Event(TimePeriod, d @ Work(Queue(), _)) =>
 			goto(Idle)
 
-		// New period, so send more messages
-		case Event(Tick, d @ Work(_, _)) =>
+		// New time period, so send more messages
+		case Event(TimePeriod, d @ Work(_, _)) =>
 			stay using deliverMessages(d.copy(workLeft = workAmount))
 	}
 
@@ -42,7 +42,8 @@ class WorkLimiter[T](duration: FiniteDuration, workAmount: Int, target: ActorRef
 
 	initialize()
 
-	private def startTimer() = setTimer("scheduler", Tick, duration, true)
+	private def startTimer() = setTimer("scheduler", TimePeriod, duration, true)
+	
 	private def stopTimer() = cancelTimer("scheduler")
 
 	private def deliverMessages(data: Work[T]): Work[T] = {
