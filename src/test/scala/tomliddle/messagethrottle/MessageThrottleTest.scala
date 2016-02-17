@@ -84,6 +84,30 @@ class MessageThrottleTest extends TestKit(ActorSystem("system"))
 				}
 			}
 
+			"send and receive 3 messages in a second and 3 messages in the next second" in {
+				val testProbe = TestProbe()
+				val workLimiterActor = createWorkLimiterActor(testProbe.ref)
+				workLimiterActor ! EnQueue("Test1")
+				workLimiterActor ! EnQueue("Test2")
+				workLimiterActor ! EnQueue("Test3")
+				workLimiterActor ! EnQueue("Test4")
+				workLimiterActor ! EnQueue("Test5")
+				workLimiterActor ! EnQueue("Test6")
+				workLimiterActor ! EnQueue("Test7")
+				within(1000 milliseconds) {
+					testProbe.expectMsg("Test1")
+					testProbe.expectMsg("Test2")
+					testProbe.expectMsg("Test3")
+					expectNoMsg()
+				}
+				within(1000 milliseconds) {
+					testProbe.expectMsg("Test4")
+					testProbe.expectMsg("Test5")
+					testProbe.expectMsg("Test6")
+					expectNoMsg()
+				}
+			}
+
 			"send 600 messages and receive 6 messages in two seconds" in {
 				val testProbe = TestProbe()
 				val workLimiterActor = createWorkLimiterActor(testProbe.ref)
